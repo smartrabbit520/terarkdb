@@ -16,6 +16,7 @@ performance_metrics = {
     'flush_write': [],
     'write_rate': [],
     # 'blob_file_count': [],
+    'blob_size': [],
     'blob_size_log': [],
     'garbage_size_log': [],
     'space_amp_log': [],
@@ -37,6 +38,11 @@ performance_metrics = {
 def read_performance(benchmark_log_path):
     # print("Current benchmark_log_path:", benchmark_log_path)
     global performance_metrics
+    
+    if not os.path.exists(benchmark_log_path):
+        print("File not found:", benchmark_log_path)
+        return
+    
     with open(benchmark_log_path, 'r') as file:
         benchmark_log = file.readlines()
         
@@ -228,6 +234,7 @@ def read_performance(benchmark_log_path):
     
     performance_metrics['flush_write'].append(flush_write)
     performance_metrics['write_rate'].append(write_rate)
+    performance_metrics['blob_size'].append(blob_size_log)
     performance_metrics['blob_size_log'].append(blob_size_log)
     performance_metrics['garbage_size_log'].append(garbage_size_log)
     performance_metrics['space_amp_log'].append(space_amp_log)
@@ -250,8 +257,9 @@ dirs=os.listdir(data_dir)
 
 # delete the dirs that not start with "with_gc"
 dirs = [d for d in dirs if os.path.isdir(os.path.join(data_dir, d))]
+blob_gc_ratio = [name.split('_')[3] for name in dirs]
+value_size = [name.split('_')[6] for name in dirs]
 
-indexs = [name.split('_')[2] for name in dirs]
 
 for data_with_param_dir in dirs:
     print("Current data_with_param_dir:", data_with_param_dir)
@@ -259,10 +267,69 @@ for data_with_param_dir in dirs:
     read_performance(benchmark_log_path)
     
 # Create a DataFrame from the performance metrics dictionary
-df = pd.DataFrame(performance_metrics, index=indexs)
+df = pd.DataFrame(performance_metrics, index=blob_gc_ratio)
+df.insert(0, 'blob_gc_ratio', blob_gc_ratio)
+df.insert(1, 'value_size', value_size)
+df = df.sort_values(['blob_gc_ratio', 'value_size'])
+
 print(df)
 
 # Output to data_dir
 output_file = os.path.join(data_dir, "performance_metrics.csv")
 df.to_csv(output_file)
 print("Output to", output_file)
+
+# draw=False
+draw=True
+if not draw:
+    exit()
+    
+# draw
+import matplotlib.pyplot as plt
+
+# Plot the line chart
+
+df['blob_gc_ratio'] = df['blob_gc_ratio'].astype(float)
+df['value_size'] = df['value_size'].astype(float)
+df['write_amp'] = df['write_amp'].astype(float)
+df['blob_size_log'] = df['blob_size_log'].astype(float)
+
+plt.figure()
+df_filtered = df[df['value_size'] == 1024]
+plt.plot(df_filtered['blob_gc_ratio'], df_filtered['write_amp'], marker='o')
+plt.xlabel('blob_gc_ratio')
+plt.ylabel('write_amp')
+plt.title('Write Amp vs blob_gc_ratio (Value Size: 1024)')
+plt.savefig(os.path.join(data_dir, "write_amp_vs_blob_gc_ratio_value_size_1024.png"))
+plt.close()
+print("Output to", os.path.join(data_dir, "write_amp_vs_blob_gc_ratio_value_size_1024.png"))
+
+plt.figure()
+df_filtered = df[df['value_size'] == 4096]
+plt.plot(df_filtered['blob_gc_ratio'], df_filtered['write_amp'], marker='o')
+plt.xlabel('blob_gc_ratio')
+plt.ylabel('write_amp')
+plt.title('Write Amp vs blob_gc_ratio (Value Size: 4096)')
+plt.savefig(os.path.join(data_dir, "write_amp_vs_blob_gc_ratio_value_size_4096.png"))
+plt.close()
+print("Output to", os.path.join(data_dir, "write_amp_vs_blob_gc_ratio_value_size_4096.png"))
+
+plt.figure()
+df_filtered = df[df['value_size'] == 1024]
+plt.plot(df_filtered['blob_gc_ratio'], df_filtered['blob_size_log'], marker='o')
+plt.xlabel('blob_gc_ratio')
+plt.ylabel('blob_size_log')
+plt.title('blob_size_log vs blob_gc_ratio (Value Size: 1024)')
+plt.savefig(os.path.join(data_dir, "blob_size_log_vs_blob_gc_ratio_value_size_1024.png"))
+plt.close()
+print("Output to", os.path.join(data_dir, "blob_size_log_vs_blob_gc_ratio_value_size_1024.png"))
+
+plt.figure()
+df_filtered = df[df['value_size'] == 4096]
+plt.plot(df_filtered['blob_gc_ratio'], df_filtered['blob_size_log'], marker='o')
+plt.xlabel('blob_gc_ratio')
+plt.ylabel('blob_size_log')
+plt.title('blob_size_log vs blob_gc_ratio (Value Size: 4096)')
+plt.savefig(os.path.join(data_dir, "blob_size_log_vs_blob_gc_ratio_value_size_4096.png"))
+plt.close()
+print("Output to", os.path.join(data_dir, "blob_size_log_vs_blob_gc_ratio_value_size_4096.png"))
