@@ -1197,6 +1197,10 @@ DEFINE_double(zenfs_low_gc_ratio, 0.25,
 DEFINE_double(zenfs_high_gc_ratio, 0.6, "");
 DEFINE_double(zenfs_force_gc_ratio, 0.9, "");
 
+DEFINE_string(
+    read_ycsb_file, "error",
+    "read_ycsb_file");
+
 static const bool FLAGS_soft_rate_limit_dummy __attribute__((__unused__)) =
     RegisterFlagValidator(&FLAGS_soft_rate_limit, &ValidateRateLimit);
 
@@ -3921,7 +3925,12 @@ class Benchmark {
     RandomGenerator gen;
     // read the file
     std::vector<std::string> files = {
-        "/mnt/nvme1n1/zt/YCSB-C/data/workloada-load-10000000-100000000.log_run.formated"
+        FLAGS_read_ycsb_file
+        // "/mnt/nvme0n1/YCSB-C/data/workloada_1024kb_100GB_0.9_zipfian.log_run.formated"
+        // "/mnt/nvme0n1/YCSB-C/data/workloada_16384kb_100GB_0.9_zipfian.log_run.formated"
+        // "/mnt/nvme0n1/YCSB-C/data/workloada_65536kb_100GB_0.9_zipfian.log_run.formated"
+        // "/mnt/nvme0n1/YCSB-C/data/workloada_4096kb_100GB_0.9_zipfian.log_run.formated"
+        // "/mnt/nvme1n1/zt/YCSB-C/data/workloada-load-10000000-100000000.log_run.formated"
         // "/mnt/nvme1n1/zt/YCSB-C/data/workloada-load-10000000-50000000.log_run.formated"
         // "/mnt/nvme1n1/zt/ycsb-workload-gen/data/workloada-run-10000000-50000000.log.formated"
         // "/mnt/nvme1n1/zt/ycsb-workload-gen/data/workloada-load-10000000-10000000.log.formated"

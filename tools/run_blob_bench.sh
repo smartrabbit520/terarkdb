@@ -134,12 +134,15 @@ use_shared_block_and_blob_cache=${USE_SHARED_BLOCK_AND_BLOB_CACHE:-1}
 blob_cache_size=${BLOB_CACHE_SIZE:-$((16 * G))}
 blob_cache_numshardbits=${BLOB_CACHE_NUMSHARDBITS:-6}
 prepopulate_blob_cache=${PREPOPULATE_BLOB_CACHE:-0}
+read_ycsb_file=${READ_YCSB_FILE:-"error"}
 
-if [ "$enable_blob_files" == "1" ]; then
-  target_file_size_base=${TARGET_FILE_SIZE_BASE:-$((32 * write_buffer_size / value_size))}
-else
-  target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
-fi
+# if [ "$enable_blob_files" == "1" ]; then
+#   target_file_size_base=${TARGET_FILE_SIZE_BASE:-$((32 * write_buffer_size / value_size))}
+# else
+#   target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
+# fi
+
+target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
 
 max_bytes_for_level_base=${MAX_BYTES_FOR_LEVEL_BASE:-$((8 * target_file_size_base))}
 
@@ -211,12 +214,15 @@ PARAMS="\
 #   --blob_garbage_collection_age_cutoff=$blob_garbage_collection_age_cutoff \
 #   --blob_garbage_collection_force_threshold=$blob_garbage_collection_force_threshold \
 #   --blob_compaction_readahead_size=$blob_compaction_readahead_size"
-
+PARAMS_GC="--blob_gc_ratio=$blob_gc_ratio \
+            --write_buffer_size=$write_buffer_size \
+            --read_ycsb_file=$read_ycsb_file \
+            --target_file_size_base=$target_file_size_base"
 # bulk load (using fillrandom) + compact
 # env -u DURATION -S "$ENV_VARS" .//benchmark.sh bulkload "$PARAMS"
 # overwrite + waitforcompaction
 # env -u DURATION -S "$ENV_VARS" ./tools/benchmark.sh overwrite "$PARAMS_GC"
-env -u DURATION -S "$ENV_VARS" ./benchmark.sh ycsb_a --blob_gc_ratio=$blob_gc_ratio
+env -u DURATION -S "$ENV_VARS" ./benchmark.sh ycsb_a  "$PARAMS_GC"
 # readwhilewriting
 # env -S "$ENV_VARS_D" ./tools/benchmark.sh readwhilewriting "$PARAMS_GC"
 # echo "$PARAMS_GC"

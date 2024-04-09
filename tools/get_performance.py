@@ -250,8 +250,8 @@ dirs=os.listdir(data_dir)
 
 # delete the dirs that not start with "with_gc"
 dirs = [d for d in dirs if os.path.isdir(os.path.join(data_dir, d))]
-
-indexs = [name.split('_')[2] for name in dirs]
+blob_gc_ratio = [name.split('_')[3] for name in dirs]
+value_size = [name.split('_')[6] for name in dirs]
 
 for data_with_param_dir in dirs:
     print("Current data_with_param_dir:", data_with_param_dir)
@@ -259,7 +259,10 @@ for data_with_param_dir in dirs:
     read_performance(benchmark_log_path)
     
 # Create a DataFrame from the performance metrics dictionary
-df = pd.DataFrame(performance_metrics, index=indexs)
+df = pd.DataFrame(performance_metrics, index=blob_gc_ratio)
+df.insert(0, 'blob_gc_ratio', blob_gc_ratio)
+df.insert(1, 'value_size', value_size)
+df = df.sort_values('blob_gc_ratio')
 print(df)
 
 # Output to data_dir

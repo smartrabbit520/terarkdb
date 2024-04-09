@@ -59,6 +59,8 @@ num_keys=100
 key_size=${KEY_SIZE:-20}
 value_size=${VALUE_SIZE:-400}
 block_size=${BLOCK_SIZE:-8192}
+write_buffer_size=${WRITE_BUFFER_SIZE:-$((128 * M))}
+bench_args=$*
 
 const_params="
   --db=$DB_DIR \
@@ -98,7 +100,9 @@ const_params="
   \
   --memtablerep=skip_list \
   --bloom_bits=10 \
-  --open_files=-1"
+  --write_buffer_size=$write_buffer_size \
+  --open_files=-1 \
+  $bench_args"
 
 l0_config="
   --level0_file_num_compaction_trigger=4 \
