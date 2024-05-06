@@ -135,14 +135,15 @@ blob_cache_size=${BLOB_CACHE_SIZE:-$((16 * G))}
 blob_cache_numshardbits=${BLOB_CACHE_NUMSHARDBITS:-6}
 prepopulate_blob_cache=${PREPOPULATE_BLOB_CACHE:-0}
 read_ycsb_file=${READ_YCSB_FILE:-"error"}
+target_blob_file_size=${TARGET_BLOB_FILE_SIZE:-$write_buffer_size}
 
-# if [ "$enable_blob_files" == "1" ]; then
-#   target_file_size_base=${TARGET_FILE_SIZE_BASE:-$((32 * write_buffer_size / value_size))}
-# else
-#   target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
-# fi
+if [ "$enable_blob_files" == "1" ]; then
+  target_file_size_base=${TARGET_FILE_SIZE_BASE:-$((32 * 10 * write_buffer_size / value_size))}
+else
+  target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
+fi
 
-target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
+# target_file_size_base=${TARGET_FILE_SIZE_BASE:-$write_buffer_size}
 
 max_bytes_for_level_base=${MAX_BYTES_FOR_LEVEL_BASE:-$((8 * target_file_size_base))}
 
@@ -217,6 +218,7 @@ PARAMS="\
 PARAMS_GC="--blob_gc_ratio=$blob_gc_ratio \
             --write_buffer_size=$write_buffer_size \
             --read_ycsb_file=$read_ycsb_file \
+            --target_blob_file_size=$target_blob_file_size \
             --target_file_size_base=$target_file_size_base"
 # bulk load (using fillrandom) + compact
 # env -u DURATION -S "$ENV_VARS" .//benchmark.sh bulkload "$PARAMS"
