@@ -110,6 +110,7 @@ op_trace_file=${OP_TRACE_FILE:-""}
 num_threads=${NUM_THREADS:-16}
 
 compression_type=${COMPRESSION_TYPE:-lz4}
+run_workload_name=${RUN_WORKLOAD_NAME:-"bulkload"}
 
 db_size=${DB_SIZE:-$((1 * T))}
 value_size=${VALUE_SIZE:-$((1 * K))}
@@ -136,6 +137,7 @@ blob_cache_numshardbits=${BLOB_CACHE_NUMSHARDBITS:-6}
 prepopulate_blob_cache=${PREPOPULATE_BLOB_CACHE:-0}
 read_ycsb_file=${READ_YCSB_FILE:-"error"}
 target_blob_file_size=${TARGET_BLOB_FILE_SIZE:-$write_buffer_size}
+read_systor_files=${READ_SYSTOR_FILES:-""}
 
 if [ "$enable_blob_files" == "1" ]; then
   target_file_size_base=${TARGET_FILE_SIZE_BASE:-$((32 * 10 * write_buffer_size / value_size))}
@@ -219,12 +221,13 @@ PARAMS_GC="--blob_gc_ratio=$blob_gc_ratio \
             --write_buffer_size=$write_buffer_size \
             --read_ycsb_file=$read_ycsb_file \
             --target_blob_file_size=$target_blob_file_size \
+            --read_systor_files=$read_systor_files \
             --target_file_size_base=$target_file_size_base"
 # bulk load (using fillrandom) + compact
 # env -u DURATION -S "$ENV_VARS" .//benchmark.sh bulkload "$PARAMS"
 # overwrite + waitforcompaction
 # env -u DURATION -S "$ENV_VARS" ./tools/benchmark.sh overwrite "$PARAMS_GC"
-env -u DURATION -S "$ENV_VARS" ./benchmark.sh ycsb_a  "$PARAMS_GC"
+env -u DURATION -S "$ENV_VARS" ./benchmark.sh "$run_workload_name" "$PARAMS_GC"
 # readwhilewriting
 # env -S "$ENV_VARS_D" ./tools/benchmark.sh readwhilewriting "$PARAMS_GC"
 # echo "$PARAMS_GC"

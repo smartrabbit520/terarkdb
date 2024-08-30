@@ -454,6 +454,82 @@ function run_ycsb_a {
   summarize_result $log_file_name ${output_name}.t${num_threads}.s${syncval} $grep_name
 }
 
+function run_systor {
+  output_name=$1
+  grep_name=$2
+  benchmarks=$3
+  op_trace_file_name=""
+  # op_trace_file_name="$output_dir/benchmark_${output_name}.t${num_threads}.s${syncval}.op_trace"
+  if [ ! -z $op_trace_file ]; then
+    op_trace_file_name=$op_trace_file
+  fi
+  echo "Do $num_keys random $output_name"
+  log_file_name="$output_dir/benchmark_${output_name}.t${num_threads}.s${syncval}.log"
+  # time_cmd=$( get_cmd $log_file_name.time )
+  # gdb --args
+  # cmd="$time_cmd  gdb --args ./db_bench --benchmarks=$benchmarks,stats \
+  cmd="../build/db_bench --benchmarks=$benchmarks,stats \
+       --use_existing_db=0 \
+       --sync=$syncval \
+       $const_params \
+       --threads=$num_threads \
+       --merge_operator=\"put\" \
+       --seed=$( date +%s ) \
+       --report_file=${log_file_name}.r.csv \
+       --open_files=512 \
+       --blob_gc_ratio=$blob_gc_ratio \
+       2>&1 | tee -a $log_file_name"
+  if [[ "$job_id" != "" ]]; then
+    echo "Job ID: ${job_id}" > $log_file_name
+    echo $cmd | tee -a $log_file_name
+  else
+    echo $cmd | tee $log_file_name
+  fi
+  # start_stats $log_file_name.stats
+  # space_monitor_file_name="$output_dir/dir_size.log"
+  eval $cmd
+  # stop_stats $log_file_name.stats
+  summarize_result $log_file_name ${output_name}.t${num_threads}.s${syncval} $grep_name
+}
+
+function run_tencent {
+  output_name=$1
+  grep_name=$2
+  benchmarks=$3
+  op_trace_file_name=""
+  # op_trace_file_name="$output_dir/benchmark_${output_name}.t${num_threads}.s${syncval}.op_trace"
+  if [ ! -z $op_trace_file ]; then
+    op_trace_file_name=$op_trace_file
+  fi
+  echo "Do $num_keys random $output_name"
+  log_file_name="$output_dir/benchmark_${output_name}.t${num_threads}.s${syncval}.log"
+  # time_cmd=$( get_cmd $log_file_name.time )
+  # gdb --args
+  # cmd="$time_cmd  gdb --args ./db_bench --benchmarks=$benchmarks,stats \
+  cmd="../build/db_bench --benchmarks=$benchmarks,stats \
+       --use_existing_db=0 \
+       --sync=$syncval \
+       $const_params \
+       --threads=$num_threads \
+       --merge_operator=\"put\" \
+       --seed=$( date +%s ) \
+       --report_file=${log_file_name}.r.csv \
+       --open_files=512 \
+       --blob_gc_ratio=$blob_gc_ratio \
+       2>&1 | tee -a $log_file_name"
+  if [[ "$job_id" != "" ]]; then
+    echo "Job ID: ${job_id}" > $log_file_name
+    echo $cmd | tee -a $log_file_name
+  else
+    echo $cmd | tee $log_file_name
+  fi
+  # start_stats $log_file_name.stats
+  # space_monitor_file_name="$output_dir/dir_size.log"
+  eval $cmd
+  # stop_stats $log_file_name.stats
+  summarize_result $log_file_name ${output_name}.t${num_threads}.s${syncval} $grep_name
+}
+
 function run_range {
   full_name=$1
   reverse_arg=$2
@@ -535,6 +611,10 @@ for job in ${jobs[@]}; do
     run_rangewhile merging $job false
   elif [ $job = ycsb_a ]; then
     run_ycsb_a ycsb_a ycsb_a ycsb_a
+  elif [ $job = systor ]; then
+    run_systor systor systor systor
+  elif [ $job = tencent ]; then
+    run_tencent tencent tencent tencent
   elif [ $job = revrangewhilemerging ]; then
     run_rangewhile merging $job true
   elif [ $job = randomtransaction ]; then
