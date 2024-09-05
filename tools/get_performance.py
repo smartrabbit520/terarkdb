@@ -6,11 +6,18 @@ import pandas as pd
 # data_dir="/mnt/nvme1n1/xq/mlsm/database_comparison/terarkdb_2024.03.18_ycsb_c"
 data_dir = sys.argv[1]
 
-if len(sys.argv) >= 3:
-    benchmark_log_name = sys.argv[2]
-else:
+if "ycsb" in data_dir:
     benchmark_log_name = "benchmark_ycsb_a.t1.s1.log"
-
+elif "systor" in data_dir:
+    benchmark_log_name = "benchmark_systor.t1.s1.log"
+elif "tencent" in data_dir:
+    benchmark_log_name = "benchmark_tencent.t1.s1.log"
+elif len(sys.argv) >= 3:
+        benchmark_log_name = sys.argv[2]
+else:
+    print("Invalid data_dir")
+    exit()
+    
 # Create a dictionary to store the performance metrics
 performance_metrics = {
     'flush_write': [],
@@ -30,6 +37,8 @@ performance_metrics = {
     'write_gb': [],
     'write_amp': [],
     'write_blob': [],
+    'gc_write_blob': [],
+    'flush_write_blob': [],
     'write_microsecond_median': [],
     'write_microsecond_average': [],
     'read_microsecond_median': [],
@@ -125,6 +134,10 @@ def read_performance(benchmark_log_path):
     
     # Blob size
     blob_size_log = numbers[3]
+    
+    # GC write blob
+    gc_write_blob = numbers[10]
+    flush_write_blob = float(write_blob) - float(gc_write_blob)
     
     # Lsm-tree size
     lsm_size = float(total_size) - float(blob_size_log)
@@ -232,8 +245,7 @@ def read_performance(benchmark_log_path):
         garbage_size_log = f"{garbage_size_numeric:.2f}"
     else:
         garbage_size_log = f"{garbage_size_numeric:.2f}{garbage_size_unit}"
-    
-    
+        
     performance_metrics['flush_write'].append(flush_write)
     performance_metrics['write_rate'].append(write_rate)
     performance_metrics['blob_size'].append(blob_size_log)
@@ -250,6 +262,8 @@ def read_performance(benchmark_log_path):
     performance_metrics['write_gb'].append(write_gb)
     performance_metrics['write_amp'].append(write_amp)
     performance_metrics['write_blob'].append(write_blob)
+    performance_metrics['gc_write_blob'].append(gc_write_blob)
+    performance_metrics['flush_write_blob'].append(flush_write_blob)
     performance_metrics['write_microsecond_median'].append(write_microsecond_median)
     performance_metrics['write_microsecond_average'].append(write_microsecond_average)
 
@@ -270,6 +284,8 @@ for data_with_param_dir in dirs:
     read_performance(benchmark_log_path)
     
 # Create a DataFrame from the performance metrics dictionary
+print(performance_metrics)
+print(blob_gc_ratio)
 df = pd.DataFrame(performance_metrics, index=blob_gc_ratio)
 df.insert(0, 'blob_gc_ratio', blob_gc_ratio)
 df.insert(1, 'value_size', value_size)
