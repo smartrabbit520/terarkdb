@@ -71,11 +71,25 @@ def read_performance(benchmark_log_path):
     # 使用正则表达式匹配所有的数字，包括小数
     numbers = re.findall(r'\d+\.?\d*', text)
     # Flush/Compaction  read/ write ：FlushCP GroupFlushInPool
-    flush_write = numbers[4]
+    # flush_write = numbers[4]
 
     # Write rate
     write_rate=numbers[5]
 
+    ### part 1.5
+
+    pattern = r"^Flush\(GB\): .*"
+
+    # Find the first occurrence of a line starting with "Cumulative writes" from the end
+    text = next((line for line in benchmark_log if re.match(pattern, line)), None)
+    # text = "Cumulative writes: 25M writes, 25M keys, 25M commit groups, 1.0 writes per commit group, ingest: 29.64 GB, 9.97 MB/s"
+    print("text:", text)
+    # 使用正则表达式匹配所有的数字，包括小数
+    numbers = re.findall(r'\d+\.?\d*', text)
+    
+    # Flush/Compaction  read/ write ：FlushCP GroupFlushInPool
+    flush_write = numbers[0]
+    print("flush_write:", flush_write)
 
     ### part 2
 
